@@ -13,6 +13,7 @@
           v-for="item in items.filter(x => x.categoryId === category.id)"
           @dragstart="onDragStart($event, item)"
           class="draggable"
+          :style="item.style"
           draggable="true"
       ></div>
     </div>
@@ -20,16 +21,30 @@
 </template>
 
 <script>
-import { ref } from "vue";
 
+import { ref } from "vue";
+function generateRandomPosition() {
+  const maxX = window.innerWidth;
+  const maxY = 200;
+
+  const randomX = Math.floor(Math.random() * maxX);
+  const randomY = Math.floor(Math.random() * maxY);
+
+  return { x: randomX, y: randomY };
+}
 export default {
   name: "App",
 
   setup() {
     let items_ar = [];
     let count_aqua = Math.floor(Math.random() * 9) + 2;
+
     for (let i = 0; i < count_aqua; i++) {
-      items_ar.push({ id: i, categoryId: 0 });
+      const randomPosition = generateRandomPosition();
+      items_ar.push({ id: i, categoryId: 0, style: {
+          left: randomPosition.x + 'px',
+          top: randomPosition.y + 'px',
+        } });
     }
 
     let items = ref(items_ar);
@@ -54,17 +69,27 @@ export default {
 
     function onDrop(e, categoryId) {
       const itemId = parseInt(e.dataTransfer.getData("itemId"));
-      items.value = items.value.map((x) => {
-        if (x.id == itemId) x.categoryId = categoryId;
+
+      const parentRect = e.target.getBoundingClientRect();
+      const offsetX = e.clientX - parentRect.left;
+      const offsetY = e.clientY - parentRect.top;
+
+      const updatedItems = items.value.map((x) => {
+        if (x.id === itemId) {
+          x.categoryId = categoryId;
+
+          x.style = {
+            left: e.clientX - parentRect.left + 'px',
+            top: e.clientY - parentRect.top + 'px',
+          };
+        }
         return x;
       });
 
+      items.value = updatedItems;
 
-      const allDropsOnGround = items.value.every(
-          (item) => item.categoryId === 1
-      );
-
-      const allDropsOnSky = items.value.every((item) => item.categoryId === 1);
+      const allDropsOnGround = updatedItems.every((item) => item.categoryId === 1);
+      const allDropsOnSky = updatedItems.every((item) => item.categoryId === 0);
 
       isGroundGreen.value = allDropsOnGround;
       isSkyWhite.value = allDropsOnSky;
@@ -72,7 +97,6 @@ export default {
 
     function getCategoryClasses(category) {
       return {
-
         'ground-green': category.title === 'ground' && isGroundGreen.value,
         'sky-white': category.title === 'sky' && isSkyWhite.value,
         [category.title]: true
@@ -93,52 +117,43 @@ export default {
 </script>
 
 <style>
-
-
 body {
   width: 100%;
   height: 100vh;
   background-color: #62afff;
   padding: 0;
-}
-
-.sky {
-  position: absolute;
-  top: 0; opacity: 0.85;
-  background-color: rgba(157, 156, 156, 0.75);
-}
-
-
-.ground {
-  position: absolute;
-  bottom: 0; left: 0;
-  width: 100%;
-  background-color: rgba(63, 18, 18, 0.75);
+  overflow: hidden;
 }
 
 .droppable {
   left: 0;
   width: 100%;
   height: 15%;
-  display: flex;
-  justify-content: space-around;
-  align-items: center;
   transition: all 1s ease;
 }
-
+.sky {
+  position: absolute;
+  top: 0;
+  opacity: .85;
+  background-color: #9d9c9cbf;
+}
+.ground {
+  position: absolute;
+  bottom: 0;
+  left: 0;
+  width: 100%;
+  background-color: #3f1212bf;
+}
 .draggable {
-  padding: 2%;
-  margin: 1%;
+  position: absolute;
+  padding: 30px;
   display: inline-block;
   border-radius: 50%;
   background: #0c36e3;
-  transition: all 1s ease;
-}
 
-.draggable h5 {
-  margin: 0;
+  touch-action: none;
+  user-drag: none;
 }
-
 
 .ground-green {
   background-color: green;
@@ -146,5 +161,4 @@ body {
 .sky-white {
   background-color: white;
 }
-
 </style>
