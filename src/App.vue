@@ -24,8 +24,8 @@
 
 import { ref } from "vue";
 function generateRandomPosition() {
-  const maxX = window.innerWidth;
-  const maxY = 200;
+  const maxX = window.innerWidth-10;
+  const maxY = 40;
 
   const randomX = Math.floor(Math.random() * maxX);
   const randomY = Math.floor(Math.random() * maxY);
@@ -60,6 +60,19 @@ export default {
         title: "ground",
       },
     ]);
+
+    function onTouchStart(e, item) {
+
+    }
+
+    function onTouchMove(e, item) {
+      item.style.left = e.touches[0].clientX + 'px';
+      item.style.top = e.touches[0].clientY + 'px';
+    }
+
+    function onTouchEnd(e, item) {
+
+    }
 
     function onDragStart(e, item) {
       e.dataTransfer.dropEffect = "move";
@@ -108,6 +121,9 @@ export default {
       categories,
       isGroundGreen,
       isSkyWhite,
+      onTouchStart,
+      onTouchMove,
+      onTouchEnd,
       onDragStart,
       onDrop,
       getCategoryClasses
